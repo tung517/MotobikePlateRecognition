@@ -1,0 +1,48 @@
+import cv2
+
+# thông số về góc
+ANGLE_OFFSET = 20
+
+# Thông số về viền
+CONTOUR_IDX = -1
+COLOR_GREEN = (0, 255, 0)
+COLOR_WHITE = (255, 255, 255)
+EDGES_NORMAL_THICKNESS = 1
+EDGES_FULL_THICKNESS = -1
+LINE_TYPE = cv2.LINE_AA
+
+# thông số về kích thước vùng
+MIN_PLATE_AREA = 4000
+MAX_PLATE_AREA = 80000
+MIN_CHARACTER_AREA_1 = 4500
+MIN_CHARACTER_AREA_2 = 8000
+MAX_CHARACTER_AREA = 25000
+
+EDGE_PLATE_MIN_RATIO = 0.8
+EDGE_PLATE_MAX_RATIO = 2.5
+
+CHARACTER_MIN_RATIO = 1.5
+CHARACTER_MAX_RATIO = 5.5
+
+# thông số về ngưỡng
+
+THRESH_FOR_ROTATE_IMAGE = 0
+MAX_VALUE = 255
+THRESH_MIN_VALUE = 100
+THRESH_MAX_VALUE = 220
+THRESH_NORMAL_VALUE = 127
+
+# thông số tìm viền
+THRESH_BINARY = cv2.THRESH_BINARY
+FIND_CONTOUR_MODE = cv2.RETR_TREE
+FIND_CONTOUR_METHOD = cv2.CHAIN_APPROX_SIMPLE
+
+# thông số kích thước ảnh
+IMAGE_SIZE_FOR_DETECT = 600
+IMAGE_WIDTH_FOR_TRAIN = 32
+IMAGE_HEIGHT_FOR_TRAIN = 64
+
+# nhãn của bộ dữ liệu
+LABEL = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'K', 'L',
+         'M', 'N', 'P', 'S', 'T', 'U', 'V', 'X', 'Y', 'Z']
