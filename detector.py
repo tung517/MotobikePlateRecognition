@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import math
 from character_segmentation import CharacterSegmentation
 import constant
 
@@ -23,9 +22,13 @@ class Detector:
         self.gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
 
     # Làm mờ ảnh
-    def blur_image(self):
-        # self.blur = cv2.GaussianBlur(self.gray, (5, 5), 0)
-        self.blur = cv2.bilateralFilter(self.gray, 9, 17, 17)
+    def blur_image(self, plate_property):
+        if plate_property == constant.PLATE_NORMAL:
+            self.blur = cv2.bilateralFilter(self.gray, 5, 11, 11)
+        elif plate_property == constant.PLATE_DIRTY:
+            self.blur = cv2.bilateralFilter(self.gray, 11, 17, 17)
+        else:
+            self.blur = cv2.bilateralFilter(self.gray, 5, 11, 11)
 
     # Tăng độ tương phản
     def increase_contrast(self):
@@ -36,7 +39,7 @@ class Detector:
         ret, self.binary = cv2.threshold(self.hist, thresh, constant.MAX_VALUE, cv2.THRESH_BINARY)
         th = cv2.adaptiveThreshold(self.hist, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 1)
         # cv2.imshow("Adaptive", th)
-        cv2.imshow("Binary", self.binary)
+        # cv2.imshow("Binary", self.binary)
         # cv2.waitKey(0)
 
     def find_image_contours(self):
@@ -84,9 +87,9 @@ class Detector:
                                      1, constant.LINE_TYPE)
                     mask_list.append(mask)
                     rotate_rect.append(rect)
-        cv2.imshow("image_1", img_copy)
-        cv2.imshow("image_2", img_copy_1)
-        cv2.imshow("image_3", img_copy_2)
+        # cv2.imshow("image_1", img_copy)
+        # cv2.imshow("image_2", img_copy_1)
+        # cv2.imshow("image_3", img_copy_2)
         cv2.waitKey(0)
         return mask_list, rotate_rect
 
@@ -154,10 +157,12 @@ class Detector:
         else:
             return False, img, character, count
 
-    def get_plate_image(self):
+    def get_plate_image(self, plate_property, num_c, light):
         self.resize_image()
         self.grayscale()
-        self.blur_image()
+
+        self.blur_image(plate_property)
+
         self.increase_contrast()
 
         # Mảng các vùng thỏa mãn

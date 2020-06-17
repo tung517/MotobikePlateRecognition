@@ -46,3 +46,15 @@ IMAGE_HEIGHT_FOR_TRAIN = 64
 LABEL = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
          'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'K', 'L',
          'M', 'N', 'P', 'S', 'T', 'U', 'V', 'X', 'Y', 'Z']
+
+# thông số về biển số
+PLATE_NORMAL = 1
+PLATE_BLUR = 2
+PLATE_DIRTY = 3
+
+NUM_C_3 = 1
+NUM_C_4 = 2
+NUM_C_5 = 3
+
+LIGHT_DAY = 1
+LIGHT_NIGHT = 2
