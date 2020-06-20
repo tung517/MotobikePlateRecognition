@@ -58,44 +58,44 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 
 model.summary()
 
-epochs = 30
-
-history = model.fit(X, y, batch_size=64, epochs=epochs, verbose=1, validation_data=(X_validate, y_validate))
-
-model.save("my_model")
-
-epoch_range = range(0, epochs)
-
-# Biểu đồ accuracy
-plt.plot(epoch_range, history.history['accuracy'])
-plt.plot(epoch_range, history.history['val_accuracy'])
-plt.title("Model Accuracy")
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend(['Train', 'Val'], loc='upper left')
-plt.show()
-
-# Biểu đồ loss
-plt.plot(epoch_range, history.history['loss'])
-plt.plot(epoch_range, history.history['val_loss'])
-plt.title("Model Loss")
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend(['Train', 'Val'], loc='upper left')
-plt.show()
-
-y_pred = model.predict(np.array(X_test))
-
-for i in range(len(y_pred)):
-    for j in range(len(y_pred[i])):
-        if y_pred[i][j] < y_pred[i].max():
-            y_pred[i][j] = 0
-        else:
-            y_pred[i][j] = 1
-
-score = accuracy_score(y_test, y_pred)
-print(score)
-
-print(y_pred)
-print(label_binarizer.inverse_transform(y_pred))
-print(label_binarizer.inverse_transform(y_test))
+# epochs = 30
+#
+# history = model.fit(X, y, batch_size=64, epochs=epochs, verbose=1, validation_data=(X_validate, y_validate))
+#
+# model.save("my_model")
+#
+# epoch_range = range(0, epochs)
+#
+# # Biểu đồ accuracy
+# plt.plot(epoch_range, history.history['accuracy'])
+# plt.plot(epoch_range, history.history['val_accuracy'])
+# plt.title("Model Accuracy")
+# plt.xlabel('Epoch')
+# plt.ylabel('Accuracy')
+# plt.legend(['Train', 'Val'], loc='upper left')
+# plt.show()
+#
+# # Biểu đồ loss
+# plt.plot(epoch_range, history.history['loss'])
+# plt.plot(epoch_range, history.history['val_loss'])
+# plt.title("Model Loss")
+# plt.xlabel('Epoch')
+# plt.ylabel('Loss')
+# plt.legend(['Train', 'Val'], loc='upper left')
+# plt.show()
+#
+# y_pred = model.predict(np.array(X_test))
+#
+# for i in range(len(y_pred)):
+#     for j in range(len(y_pred[i])):
+#         if y_pred[i][j] < y_pred[i].max():
+#             y_pred[i][j] = 0
+#         else:
+#             y_pred[i][j] = 1
+#
+# score = accuracy_score(y_test, y_pred)
+# print(score)
+#
+# print(y_pred)
+# print(label_binarizer.inverse_transform(y_pred))
+# print(label_binarizer.inverse_transform(y_test))

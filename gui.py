@@ -26,11 +26,13 @@ class Root(Tk):
         self.title("Motorbike Recognition App")
         self.minsize(800, 600)
 
+        self.locate_window()
+
         self.img_origin = None
         self.img_plate = None
-        self.plate_type = None
+        self.filename = None
 
-        # Radio value vùng đặc điểm biển sô
+        # Radio value vùng đặc điểm biển số
         self.plate_properties_value = IntVar()
         self.plate_properties_value.set(1)
 
@@ -99,10 +101,23 @@ class Root(Tk):
     # Vùng option điều kiện ánh sáng
     def light_condition(self):
         self.label_light_condition = self.create_label(500, 400, "Điều kiện ánh sáng", bg='#ed34f5')
-        self.rb_day = self.create_radio_button(500, 440, "Ngày", 1, LIGHT_CONDITION,
+        self.rb_day = self.create_radio_button(500, 440, "Sáng", 1, LIGHT_CONDITION,
                                                lambda: self.radio_event(LIGHT_CONDITION))
-        self.rb_night = self.create_radio_button(500, 470, "Đêm", 2, LIGHT_CONDITION,
+        self.rb_night = self.create_radio_button(500, 470, "Tối", 2, LIGHT_CONDITION,
                                                  lambda: self.radio_event(LIGHT_CONDITION))
+
+    # Location window
+
+    def locate_window(self):
+        w = 800
+        h = 600
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        print("w = " + str(w) + " h = " + str(h))
+        print("ws = " + str(ws) + " hs = " + str(hs))
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+        self.geometry('+%d+%d' % (x, y))
 
     # Tạo label
     def create_label(self, x, y, text=None, bg=None, font=None):
@@ -160,60 +175,66 @@ class Root(Tk):
 
     # Tạo load image dialog
     def file_dialog(self):
-        self.filename = filedialog.askopenfilename(initialdir="./", title='Chose image',
-                                                   filetypes=(('jpeg', '*.jpg'), ('jpeg', '*.jpeg'), ('png', '*.png'),
-                                                              ('All file', '*.*')))
+        file = filedialog.askopenfilename(initialdir="./", title='Chose image',
+                                          filetypes=(('jpeg', '*.jpg'), ('jpeg', '*.jpeg'), ('png', '*.png'),
+                                                     ('All file', '*.*')))
+        if len(file) > 0:
+            self.filename = file
 
     # Xử lí sự kiện load image button
     def click_load_image(self):
         self.file_dialog()
-        self.load_image_origin(self.filename, size=(250, 250))
-        self.canvas_img_ori.create_image(0, 0, anchor=NW, image=self.img_origin)
+        if self.filename is not None:
+            self.load_image_origin(self.filename, size=(250, 250))
+            self.canvas_img_ori.create_image(0, 0, anchor=NW, image=self.img_origin)
 
     # xử lí sự kiện click recognize image button
     def click_recognize_plate(self):
         # Tải ảnh lên
-        img = cv2.imread(self.filename)
-
-        # Khởi tạo đối tượng nhận diện biển số
-        detector = Detector(img)
-
-        # Các thông số về biển số
-        plate_property = self.plate_properties_value.get()
-        num_c = self.num_character_value.get()
-        light = self.light_condition_value.get()
-
-        # Tìm vị trí của biển số
-        detector.get_plate_image(plate_property, num_c, light)
-
-        if detector.plate is None:
-            messagebox.showinfo(title="Thông báo", message="Không nhận dạng được biển số")
+        if self.filename is None:
+            messagebox.showinfo(title="Thông báo", message="Chưa tải ảnh lên !")
         else:
+            img = cv2.imread(self.filename)
 
-            self.convert_image(detector.plate[0], (250, 250))
-            self.canvas_img_plate.create_image(0, 0, anchor=NW, image=self.img_plate)
+            # Khởi tạo đối tượng nhận diện biển số
+            detector = Detector(img)
 
-            # character_segmentation = CharacterSegmentation(detector.plate)
-            #
-            # # Thực hiện các bước phân vùng chữ
-            # character_segmentation.get_character()
+            # Các thông số về biển số
+            plate_property = self.plate_properties_value.get()
+            num_c = self.num_character_value.get()
+            light = self.light_condition_value.get()
 
-            # Đưa dữ liệu vào trong model để dự đoán
-            model = tf.keras.models.load_model('./my_model/')
+            # Tìm vị trí của biển số
+            detector.get_plate_image(plate_property, num_c, light)
 
-            label_binarizer = LabelBinarizer()
-            label_binarizer.fit(constant.LABEL)
+            if detector.plate is None:
+                messagebox.showinfo(title="Thông báo", message="Không nhận dạng được biển số")
+            else:
 
-            y_pred = model.predict(np.array(detector.plate[2]))
+                self.convert_image(detector.plate[0], (250, 250))
+                self.canvas_img_plate.create_image(0, 0, anchor=NW, image=self.img_plate)
 
-            result = label_binarizer.inverse_transform(y_pred)
-            lisence = ""
-            for j in range(len(result)):
-                lisence += str(result[j])
-                if j == 1:
-                    lisence += "-"
+                # character_segmentation = CharacterSegmentation(detector.plate)
+                #
+                # # Thực hiện các bước phân vùng chữ
+                # character_segmentation.get_character()
 
-            self.label_result.configure(text=lisence)
+                # Đưa dữ liệu vào trong model để dự đoán
+                model = tf.keras.models.load_model('./my_model/')
+
+                label_binarizer = LabelBinarizer()
+                label_binarizer.fit(constant.LABEL)
+
+                y_pred = model.predict(np.array(detector.plate[2]))
+
+                result = label_binarizer.inverse_transform(y_pred)
+                lisence = ""
+                for j in range(len(result)):
+                    lisence += str(result[j])
+                    if j == 1:
+                        lisence += "-"
+
+                self.label_result.configure(text=lisence)
 
     # Chuyển ảnh Mat -> Image
     def convert_image(self, img, size):

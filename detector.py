@@ -33,14 +33,29 @@ class Detector:
     # Tăng độ tương phản
     def increase_contrast(self):
         clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
-        self.hist = clahe.apply(self.blur)
+        clahe_1 = cv2.createCLAHE(clipLimit=3, tileGridSize=(5, 5))
+        clahe_2 = cv2.createCLAHE(clipLimit=1, tileGridSize=(3, 3))
+        clahe_3 = cv2.createCLAHE(clipLimit=10, tileGridSize=(21, 21))
+        # self.hist = cv2.equalizeHist(self.blur)
+        self.hist = clahe_3.apply(self.blur)
+        hist_1 = clahe_1.apply(self.blur)
+        hist_2 = clahe_2.apply(self.blur)
+        hist_3 = clahe_3.apply(self.blur)
+        # hist_4 = cv2.equalizeHist(self.blur)
+        cv2.imshow("hist_0", self.hist)
+        cv2.imshow("hist_1", hist_1)
+        cv2.imshow("hist_2", hist_2)
+        cv2.imshow("hist_3", hist_3)
+        # cv2.imshow("hist_4", hist_4)
+        cv2.waitKey(0)
 
     def get_binary_image(self, thresh):
         ret, self.binary = cv2.threshold(self.hist, thresh, constant.MAX_VALUE, cv2.THRESH_BINARY)
-        th = cv2.adaptiveThreshold(self.hist, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 1)
-        # cv2.imshow("Adaptive", th)
-        # cv2.imshow("Binary", self.binary)
-        # cv2.waitKey(0)
+        th = cv2.adaptiveThreshold(self.hist, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 5)
+        canny = cv2.Canny(self.hist, 100, 220)
+        cv2.imshow("Adaptive", th)
+        cv2.imshow("Binary", self.binary)
+        cv2.waitKey(0)
 
     def find_image_contours(self):
         contours, hierarchy = cv2.findContours(self.binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -168,7 +183,7 @@ class Detector:
         # Mảng các vùng thỏa mãn
         plate_list = []
 
-        for i in range(constant.THRESH_MIN_VALUE, constant.THRESH_MAX_VALUE, 10):
+        for i in range(constant.THRESH_MIN_VALUE, constant.THRESH_MAX_VALUE, 5):
             result, img, character, count = self.find_plate_location(i)
             if result:
                 plate_list.append((img, count, character))
