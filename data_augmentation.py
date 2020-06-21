@@ -53,8 +53,8 @@ class DataAugmentation:
                 if new_image[j, i] < new_image[j - 1, i]:
                     new_image[j, i] = new_image[j - 1, i]
 
-        rotate_img = cv2.resize(new_image, (constant.IMAGE_WIDTH_FOR_TRAIN, constant.IMAGE_HEIGHT_FOR_TRAIN))
-        rotate_img = np.reshape(rotate_img, (constant.IMAGE_HEIGHT_FOR_TRAIN, constant.IMAGE_WIDTH_FOR_TRAIN, 1))
+        rotate_img = cv2.resize(new_image, (32, 32))
+        rotate_img = np.reshape(rotate_img, (32, 32, 1))
         return rotate_img
 
     def blur_img(self, img_path):
@@ -62,6 +62,6 @@ class DataAugmentation:
         img = cv2.GaussianBlur(img, (3, 3), 0)
         ret, img = cv2.threshold(img, img.mean(), constant.MAX_VALUE,
                                  cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        img = cv2.resize(img, (constant.IMAGE_WIDTH_FOR_TRAIN, constant.IMAGE_HEIGHT_FOR_TRAIN))
-        img = np.reshape(img, (constant.IMAGE_HEIGHT_FOR_TRAIN, constant.IMAGE_WIDTH_FOR_TRAIN, 1))
+        img = cv2.resize(img, (32, 32))
+        img = np.reshape(img, (32, 32, 1))
         return img

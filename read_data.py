@@ -65,8 +65,8 @@ class ReadData:
                 # Đọc dữ liệu cho mảng X
                 img = cv2.imread(file_path, 0)
                 ret, img = cv2.threshold(img, img.mean(), constant.MAX_VALUE, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                img = cv2.resize(img, (constant.IMAGE_WIDTH_FOR_TRAIN, constant.IMAGE_HEIGHT_FOR_TRAIN))
-                img = np.reshape(img, (constant.IMAGE_HEIGHT_FOR_TRAIN, constant.IMAGE_WIDTH_FOR_TRAIN, 1))
+                img = cv2.resize(img, (32, 32))
+                img = np.reshape(img, (32, 32, 1))
                 # cv2.imshow("img_origin", img)
                 # cv2.waitKey(0)
                 self.X.append(img)

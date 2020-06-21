@@ -40,7 +40,7 @@ FIND_CONTOUR_METHOD = cv2.CHAIN_APPROX_SIMPLE
 # thông số kích thước ảnh
 IMAGE_SIZE_FOR_DETECT = 600
 IMAGE_WIDTH_FOR_TRAIN = 32
-IMAGE_HEIGHT_FOR_TRAIN = 64
+IMAGE_HEIGHT_FOR_TRAIN = 32
 
 # nhãn của bộ dữ liệu
 LABEL = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',

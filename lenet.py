@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Flatten
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Flatten, AveragePooling2D
 from tensorflow.keras.models import Sequential
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import accuracy_score
@@ -38,19 +38,19 @@ print(y_test.shape)
 
 model = Sequential()
 
-model.add(Conv2D(32, (3, 3), input_shape=[32, 32, 1], activation='relu', padding='same'))
-model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
-model.add(MaxPool2D(pool_size=(2, 2)))
+model.add(Conv2D(6, (5, 5), input_shape=[32, 32, 1], activation='tanh', padding='same', strides=(1, 1)))
+model.add(AveragePooling2D((2, 2), padding='valid', strides=(2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(MaxPool2D(pool_size=(2, 2)))
+model.add(Conv2D(16, (5, 5), activation='tanh', padding='valid', strides=(1, 1)))
+model.add(AveragePooling2D((2, 2), padding='valid', strides=(2, 2)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())
 
-model.add(Dense(units=128, activation='relu'))
+model.add(Dense(units=120, activation='tanh'))
+model.add(Dropout(0.5))
+model.add(Dense(units=84, activation='tanh'))
 model.add(Dropout(0.5))
 model.add(Dense(units=30, activation='softmax'))
 
@@ -62,7 +62,7 @@ epochs = 50
 
 history = model.fit(X_train, y_train, batch_size=64, epochs=epochs, verbose=1, validation_data=(X_validate, y_validate))
 
-model.save("my_model")
+# model.save("my_model")
 
 epoch_range = range(0, epochs)
 
