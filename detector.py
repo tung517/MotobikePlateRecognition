@@ -33,28 +33,10 @@ class Detector:
     # Tăng độ tương phản
     def increase_contrast(self):
         clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
-        clahe_1 = cv2.createCLAHE(clipLimit=3, tileGridSize=(5, 5))
-        clahe_2 = cv2.createCLAHE(clipLimit=1, tileGridSize=(3, 3))
-        clahe_3 = cv2.createCLAHE(clipLimit=10, tileGridSize=(21, 21))
-        # self.hist = cv2.equalizeHist(self.blur)
         self.hist = clahe.apply(self.blur)
-        # hist_1 = clahe_1.apply(self.blur)
-        # hist_2 = clahe_2.apply(self.blur)
-        # hist_3 = clahe_3.apply(self.blur)
-        # hist_4 = cv2.equalizeHist(self.blur)
-        # cv2.imshow("hist_0", self.hist)
-        # cv2.imshow("hist_1", hist_1)
-        # cv2.imshow("hist_2", hist_2)
-        # cv2.imshow("hist_3", hist_3)
-        # cv2.imshow("hist_4", hist_4)
-        cv2.waitKey(0)
 
     def get_binary_image(self, thresh):
         ret, self.binary = cv2.threshold(self.hist, thresh, constant.MAX_VALUE, cv2.THRESH_BINARY)
-        th = cv2.adaptiveThreshold(self.hist, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 5)
-        canny = cv2.Canny(self.hist, 100, 220)
-        # cv2.imshow("Adaptive", th)
-        # cv2.imshow("Binary", self.binary)
         cv2.waitKey(0)
 
     def find_image_contours(self):
@@ -86,10 +68,6 @@ class Detector:
                 w = rect[1][0]
                 h = rect[1][1]
 
-                cv2.drawContours(img_copy_1, [box], constant.CONTOUR_IDX, constant.COLOR_GREEN,
-                                 constant.EDGES_NORMAL_THICKNESS,
-                                 constant.LINE_TYPE)
-
                 # Loại theo diện tích và cạnh
                 if constant.MIN_PLATE_AREA < w * h < constant.MAX_PLATE_AREA \
                         and (constant.EDGE_PLATE_MIN_RATIO < w / h < constant.EDGE_PLATE_MAX_RATIO
@@ -98,8 +76,8 @@ class Detector:
                     cv2.drawContours(mask, [box], constant.CONTOUR_IDX, constant.COLOR_WHITE,
                                      constant.EDGES_FULL_THICKNESS,
                                      constant.LINE_TYPE)
-                    cv2.drawContours(img_copy_2, [box], constant.CONTOUR_IDX, constant.COLOR_GREEN,
-                                     1, constant.LINE_TYPE)
+                    # cv2.drawContours(img_copy_2, [box], constant.CONTOUR_IDX, constant.COLOR_GREEN,
+                    #                  1, constant.LINE_TYPE)
                     mask_list.append(mask)
                     rotate_rect.append(rect)
         # cv2.imshow("image_1", img_copy)
@@ -114,7 +92,7 @@ class Detector:
 
         for i in range(len(mask_list)):
             # Ảnh gray có backgrond đen và vùng ảnh gốc được lấy ra bởi mask
-            gray = cv2.bitwise_and(self.hist, self.hist, mask=mask_list[i])
+            gray = cv2.bitwise_and(self.gray, self.gray, mask=mask_list[i])
 
             # Thực hiện xoay ảnh
             # Lấy góc tương ứng với mask
@@ -129,44 +107,48 @@ class Detector:
                 gray = self.rotate_image(gray, angle)
 
             # Nhị phân hóa ảnh
-            ret, th = cv2.threshold(gray, constant.THRESH_FOR_ROTATE_IMAGE, constant.THRESH_MAX_VALUE,
+            ret, th = cv2.threshold(gray, constant.THRESH_FOR_ROTATE_IMAGE, constant.MAX_VALUE,
                                     cv2.THRESH_BINARY)
 
             # Lấy viền
             contour, hierarchy = cv2.findContours(th, constant.FIND_CONTOUR_MODE, constant.FIND_CONTOUR_METHOD)
 
-            # Lấy ảnh vùng ROI
-            x, y, w, h = cv2.boundingRect(contour[0])
-            img_plate = gray[y:y + h, x:x + w]
-            mask_image.append(img_plate)
+            if len(contour) == 0:
+                continue
+            else:
+                # Lấy ảnh vùng ROI
+                x, y, w, h = cv2.boundingRect(contour[0])
+                img_plate = gray[y:y + h, x:x + w]
+                mask_image.append(img_plate)
         return mask_image
 
-    def check_plate_image(self, mask_image):
+    def check_plate_image(self, mask_image, plate_property, num_c):
         # Duyệt mảng gồm ảnh các vùng lấy được từ mask
         for img in mask_image:
             character_segmentation = CharacterSegmentation(img)
-            character_segmentation.get_character()
-
-            if 7 <= len(character_segmentation.character) < 10:
-                return img, character_segmentation.character, len(character_segmentation.character)
+            character_segmentation.get_character(plate_property, num_c)
+            if num_c != 4:
+                if len(character_segmentation.character) == num_c + 6:
+                    return img, character_segmentation.character, len(character_segmentation.character)
+            else:
+                if 7 <= len(character_segmentation.character) < 10:
+                    return img, character_segmentation.character, len(character_segmentation.character)
         return None, None, 0
 
     def rotate_image(self, img, angle):
         (h, w) = img.shape[:2]
-
         center = (w // 2, h // 2)
-
         M = cv2.getRotationMatrix2D(center, -angle, 1.0)
         new_img = cv2.warpAffine(img, M, (w, h))
         return new_img
 
     # Tìm vùng biển số xe
-    def find_plate_location(self, threshold):
+    def find_plate_location(self, threshold, plate_property, num_c):
         self.get_binary_image(threshold)
         contours = self.find_image_contours()
         mask_list, rotate_rect = self.get_mask_list(contours)
         mask_image = self.get_mask_image(mask_list, rotate_rect)
-        img, character, count = self.check_plate_image(mask_image)
+        img, character, count = self.check_plate_image(mask_image, plate_property, num_c)
         if img is not None:
             return True, img, character, count
         else:
@@ -175,18 +157,20 @@ class Detector:
     def get_plate_image(self, plate_property, num_c, light):
         self.resize_image()
         self.grayscale()
-
         self.blur_image(plate_property)
-
         self.increase_contrast()
-
         # Mảng các vùng thỏa mãn
         plate_list = []
-
-        for i in range(constant.THRESH_MIN_VALUE, constant.THRESH_MAX_VALUE, 5):
-            result, img, character, count = self.find_plate_location(i)
-            if result:
-                plate_list.append((img, count, character))
+        if light == 1 or (light == 3 and self.img.mean() > 80):
+            for i in range(constant.THRESH_MIN_VALUE_LIGHT, constant.THRESH_MAX_VALUE_LIGHT, 5):
+                result, img, character, count = self.find_plate_location(i, plate_property, num_c)
+                if result:
+                    plate_list.append((img, count, character))
+        else:
+            for i in range(constant.THRESH_MIN_VALUE_DARK, constant.THRESH_MAX_VALUE_DARK, 5):
+                result, img, character, count = self.find_plate_location(i, plate_property, num_c)
+                if result:
+                    plate_list.append((img, count, character))
 
         if len(plate_list) > 0:
             # Sắp xếp theo diện tích ảnh và số vùng

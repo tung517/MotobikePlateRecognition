@@ -1,4 +1,3 @@
-import tensorflow as tf
 from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Flatten
 from tensorflow.keras.models import Sequential
 from sklearn.preprocessing import LabelBinarizer
@@ -25,8 +24,8 @@ y = label_binarizer.transform(y)
 print(X.shape)
 print(y.shape)
 
-X_train, X_validate, X_test = np.split(X, [int(0.7 * len(X)), int(0.9 * len(X))])
-y_train, y_validate, y_test = np.split(y, [int(0.7 * len(y)), int(0.9 * len(y))])
+X_train, X_validate, X_test = np.split(X, [int(0.6 * len(X)), int(0.8 * len(X))])
+y_train, y_validate, y_test = np.split(y, [int(0.6 * len(y)), int(0.8 * len(y))])
 
 print(X_train.shape)
 print(X_validate.shape)
@@ -41,12 +40,12 @@ model = Sequential()
 model.add(Conv2D(32, (3, 3), input_shape=[32, 32, 1], activation='relu', padding='same'))
 model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
 model.add(MaxPool2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.3))
 
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(MaxPool2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.3))
 
 model.add(Flatten())
 
@@ -58,7 +57,7 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 
 model.summary()
 
-epochs = 50
+epochs = 55
 
 history = model.fit(X_train, y_train, batch_size=64, epochs=epochs, verbose=1, validation_data=(X_validate, y_validate))
 

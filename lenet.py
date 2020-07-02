@@ -25,8 +25,8 @@ y = label_binarizer.transform(y)
 print(X.shape)
 print(y.shape)
 
-X_train, X_validate, X_test = np.split(X, [int(0.7 * len(X)), int(0.9 * len(X))])
-y_train, y_validate, y_test = np.split(y, [int(0.7 * len(y)), int(0.9 * len(y))])
+X_train, X_validate, X_test = np.split(X, [int(0.6 * len(X)), int(0.8 * len(X))])
+y_train, y_validate, y_test = np.split(y, [int(0.6 * len(y)), int(0.8 * len(y))])
 
 print(X_train.shape)
 print(X_validate.shape)
@@ -58,7 +58,7 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 
 model.summary()
 
-epochs = 50
+epochs = 60
 
 history = model.fit(X_train, y_train, batch_size=64, epochs=epochs, verbose=1, validation_data=(X_validate, y_validate))
 

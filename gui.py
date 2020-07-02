@@ -38,11 +38,11 @@ class Root(Tk):
 
         # Radio value vùng số kí tự
         self.num_character_value = IntVar()
-        self.num_character_value.set(2)
+        self.num_character_value.set(4)
 
         # Radio value vùng điều kiện ánh sáng
         self.light_condition_value = IntVar()
-        self.light_condition_value.set(1)
+        self.light_condition_value.set(3)
 
         # Ảnh gốc
         self.origin_image_area()
@@ -51,11 +51,11 @@ class Root(Tk):
         self.plate_image_area()
 
         # Kết quả biển số
-        font_style = tkfont.Font(family='Arial', size=15)
-        self.label_result = self.create_label(650, 175, text="               ", bg="#b4eb8a", font=font_style)
+        self.font_style = tkfont.Font(family='Helvetica', size=16)
+        self.label_result = self.create_label(650, 175, text="               ", bg="#f5f242", font=self.font_style)
 
         # Option
-        self.label_option = self.create_label(50, 400, "Tùy chọn", bg='#ed34f5')
+        self.label_option = self.create_label(50, 400, "Tùy chọn", bg='#f5f242')
 
         # Vùng option đặc điểm biển số
         self.plate_properties()
@@ -68,19 +68,19 @@ class Root(Tk):
 
     # Vùng ảnh gốc
     def origin_image_area(self):
-        self.label_img_ori = self.create_label(150, 20, text='Ảnh gốc', bg='#ed34f5')
+        self.label_img_ori = self.create_label(150, 20, text='Ảnh gốc', bg='#f5f242')
         self.canvas_img_ori = self.create_canvas(50, 50, 250, 250, img=self.img_origin)
         self.btn_load_image = self.create_button(50, 330, "Tải ảnh lên", self.click_load_image)
 
     # Vùng ảnh biển số
     def plate_image_area(self):
-        self.label_img_plate = self.create_label(440, 20, text='Ảnh biển số', bg='#ed34f5')
+        self.label_img_plate = self.create_label(440, 20, text='Ảnh biển số', bg='#f5f242')
         self.canvas_img_plate = self.create_canvas(350, 50, 250, 250)
         self.btn_recognize_plate = self.create_button(350, 330, "Nhận diện biển số", self.click_recognize_plate)
 
     # Vùng option đặc điểm biển số
     def plate_properties(self):
-        self.label_plate_properties = self.create_label(150, 400, "Đặc điểm biển số", bg='#ed34f5')
+        self.label_plate_properties = self.create_label(150, 400, "Đặc điểm biển số", bg='#f5f242')
         self.rb_normal_plate = self.create_radio_button(150, 440, "Biển rõ", 1, PLATE_PROPERTIES_VALUE,
                                                         lambda: self.radio_event(PLATE_PROPERTIES_VALUE))
         self.rb_dirty_plate = self.create_radio_button(150, 470, "Biển mờ", 2, PLATE_PROPERTIES_VALUE,
@@ -90,24 +90,28 @@ class Root(Tk):
 
     # Vùng option só chữ số
     def number_character_of_plate(self):
-        self.label_num_character = self.create_label(350, 400, "Số kí tự", bg='#ed34f5')
+        self.label_num_character = self.create_label(350, 400, "Số kí tự", bg='#f5f242')
         self.rb_num_three = self.create_radio_button(350, 440, "3 số", 1, NUM_CHARACTER_VALUE, lambda: self.radio_event(
             NUM_CHARACTER_VALUE))
         self.rb_num_four = self.create_radio_button(350, 470, "4 số", 2, NUM_CHARACTER_VALUE, lambda: self.radio_event(
             NUM_CHARACTER_VALUE))
         self.rb_num_five = self.create_radio_button(350, 500, "5 số", 3, NUM_CHARACTER_VALUE, lambda: self.radio_event(
             NUM_CHARACTER_VALUE))
+        self.rb_customize = self.create_radio_button(350, 530, "Tùy chỉnh", 4, NUM_CHARACTER_VALUE,
+                                                     lambda: self.radio_event(
+                                                         NUM_CHARACTER_VALUE))
 
     # Vùng option điều kiện ánh sáng
     def light_condition(self):
-        self.label_light_condition = self.create_label(500, 400, "Điều kiện ánh sáng", bg='#ed34f5')
+        self.label_light_condition = self.create_label(500, 400, "Điều kiện ánh sáng", bg='#f5f242')
         self.rb_day = self.create_radio_button(500, 440, "Sáng", 1, LIGHT_CONDITION,
                                                lambda: self.radio_event(LIGHT_CONDITION))
         self.rb_night = self.create_radio_button(500, 470, "Tối", 2, LIGHT_CONDITION,
                                                  lambda: self.radio_event(LIGHT_CONDITION))
+        self.rb_customize = self.create_radio_button(500, 500, "Tùy chỉnh", 3, LIGHT_CONDITION,
+                                                     lambda: self.radio_event(LIGHT_CONDITION))
 
-    # Location window
-
+    # Điều chỉnh của sổ ở giữa màn hình
     def locate_window(self):
         w = 800
         h = 600
@@ -175,7 +179,7 @@ class Root(Tk):
 
     # Tạo load image dialog
     def file_dialog(self):
-        file = filedialog.askopenfilename(initialdir="./", title='Chose image',
+        file = filedialog.askopenfilename(initialdir="./", title='Choose image',
                                           filetypes=(('jpeg', '*.jpg'), ('jpeg', '*.jpeg'), ('png', '*.png'),
                                                      ('All file', '*.*')))
         if len(file) > 0:
@@ -200,8 +204,11 @@ class Root(Tk):
             detector = Detector(img)
 
             # Các thông số về biển số
+            # Đặc điểm của biển
             plate_property = self.plate_properties_value.get()
+            # Số lượng kí tự
             num_c = self.num_character_value.get()
+            # Điều kiện ánh sáng
             light = self.light_condition_value.get()
 
             # Tìm vị trí của biển số
@@ -210,6 +217,12 @@ class Root(Tk):
             if detector.plate is None:
                 messagebox.showinfo(title="Thông báo", message="Không nhận dạng được biển số")
             else:
+                # Hiển thị ảnh của các kí tự
+                # count = 0
+                # for c in detector.plate[2]:
+                #     cv2.imshow("c " + str(count), c)
+                #     count += 1
+                # cv2.waitKey(0)
 
                 self.convert_image(detector.plate[0], (250, 250))
                 self.canvas_img_plate.create_image(0, 0, anchor=NW, image=self.img_plate)
@@ -229,11 +242,16 @@ class Root(Tk):
 
                 result = label_binarizer.inverse_transform(y_pred)
                 lisence = ""
-                for j in range(len(result)):
-                    lisence += str(result[j])
-                    if j == 1:
-                        lisence += "-"
-
+                if len(result) == 7:
+                    for j in range(len(result)):
+                        lisence += str(result[j])
+                        if j == 1 or j == 4:
+                            lisence += "-"
+                else:
+                    for j in range(len(result)):
+                        lisence += str(result[j])
+                        if j == 1 or j == 3:
+                            lisence += "-"
                 self.label_result.configure(text=lisence)
 
     # Chuyển ảnh Mat -> Image

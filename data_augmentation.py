@@ -59,7 +59,7 @@ class DataAugmentation:
 
     def blur_img(self, img_path):
         img = cv2.imread(img_path, 0)
-        img = cv2.GaussianBlur(img, (3, 3), 0)
+        img = cv2.GaussianBlur(img, (5, 5), 0)
         ret, img = cv2.threshold(img, img.mean(), constant.MAX_VALUE,
                                  cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         img = cv2.resize(img, (32, 32))

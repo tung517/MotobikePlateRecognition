@@ -40,10 +40,10 @@ class ReadData:
             self.file_paths.extend(file_path_copy)
 
         # Đánh dấu các ảnh cần xử lí
-        # Từ 0 -> 599 là ảnh gốc
-        # Từ 600 -> 1199 là ảnh xoay trái
-        # Từ 1200 -> 1799 là ảnh xoay phải
-        # Từ 1800 -> 2399 là ảnh làm mờ
+        # Từ 0 -> 1199 là ảnh gốc
+        # Từ 1200 -> 2399 là ảnh xoay trái
+        # Từ 2400 -> 3599 là ảnh xoay phải
+        # Từ 3600 -> 4799 là ảnh làm mờ
 
         for i in range(file_path_size, len(self.file_paths)):
             if i >= 3 * file_path_size:
@@ -67,8 +67,6 @@ class ReadData:
                 ret, img = cv2.threshold(img, img.mean(), constant.MAX_VALUE, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
                 img = cv2.resize(img, (32, 32))
                 img = np.reshape(img, (32, 32, 1))
-                # cv2.imshow("img_origin", img)
-                # cv2.waitKey(0)
                 self.X.append(img)
                 # Đọc vào dữ liệu cho y
                 split = str(file_path).split("/")
@@ -80,18 +78,12 @@ class ReadData:
                 # Ảnh xoay trái
                 if file_path[-1] == 'l':
                     img = data_augment.rotate(real_file_path, -5)
-                    # cv2.imshow("rotate_left", img)
-                    # cv2.waitKey(0)
                 # Ảnh xoay phải
                 if file_path[-1] == 'r':
                     img = data_augment.rotate(real_file_path, 5)
-                    # cv2.imshow("rotate_right", img)
-                    # cv2.waitKey(0)
                 # Ảnh làm mờ
                 if file_path[-1] == 'b':
                     img = data_augment.blur_img(real_file_path)
-                    # cv2.imshow("blur", img)
-                    # cv2.waitKey(0)
                 # Đọc vào dữ liệu X
                 self.X.append(img)
                 # Đọc vào dữ liệu y
@@ -102,16 +94,3 @@ class ReadData:
         self.X = np.array(self.X, dtype='float') / 255.0
         self.y = np.array(self.y)
 
-    # Đọc vào dữ liệu ảnh gốc
-    def read_origin_data(self):
-        # Danh sách các thư mục chứa ảnh
-        list_dir = os.listdir(self.folder_path)
-        for folder in list_dir:
-            # Với từng folder đọc các ảnh trong folder đó
-            files = self.folder_path + "/" + folder + "/*.*"
-            # print(files)
-            list_file = glob.glob(files)
-            # print(list_file)
-            for file in list_file:
-                # Danh sách địa chỉ của ảnh
-                self.file_paths.append(file)

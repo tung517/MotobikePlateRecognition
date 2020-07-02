@@ -20,35 +20,45 @@ class CharacterSegmentation:
     # Thay đổi kích thước ảnh
     def resize_image(self):
         self.img = cv2.resize(self.img, (constant.IMAGE_SIZE_FOR_DETECT, constant.IMAGE_SIZE_FOR_DETECT))
-        self.img_copy = self.img.copy()
+        # self.img_copy = self.img.copy()
         # cv2.imshow("resize", self.img)
         # cv2.waitKey(0)
 
-    # Làm rõ ảnh
-    def clahe_image(self):
-        cl = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    # Làm rõ ảnh cục bộ
+    def clahe_image(self, clip_limit, tile_grid_size):
+        cl = cv2.createCLAHE(clip_limit, tile_grid_size)
         self.img = cl.apply(self.img)
         # cv2.imshow("clahe", self.img)
         # cv2.waitKey(0)
 
-    # Vẽ histogram
+    # Làm rõ ảnh toàn cục
+    def equal_hist(self):
+        self.img = cv2.equalizeHist(self.img)
+
+    # Làm mờ ảnh
     def blur(self):
         self.img = cv2.GaussianBlur(self.img, (5, 5), 0)
         # cv2.imshow("blur", self.img)
         # cv2.waitKey(0)
 
-    # Lấy ngưỡng
-    def thresh_image(self, thresh):
-        ret, self.thresh = cv2.threshold(self.img, self.img.mean(), constant.MAX_VALUE,
-                                         cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        th_1 = cv2.adaptiveThreshold(self.img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 115, 1)
-        th_2 = cv2.adaptiveThreshold(self.img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 115, 1)
+    # Làm mờ bảo toàn cạnh
+    def bilateral_blur(self):
+        self.img = cv2.bilateralFilter(self.img, 5, 11, 11)
 
-        # kernel = np.ones((5, 5), np.uint8)
-        # dilate = cv2.morphologyEx(th_1, cv2.MORPH_OPEN, kernel, iterations=1)
-        # cv2.imshow("adaptive thresh mean", th_1)
-        # cv2.imshow("adaptive thresh gaussian", th_2)
+    # Làm mờ bụi, bẩn
+    def median_blur(self):
+        self.img = cv2.medianBlur(self.img, 5)
+
+    # Lấy ngưỡng
+    def thresh_image(self):
+        ret, self.thresh = cv2.threshold(self.img, self.img.mean(), constant.MAX_VALUE,
+                                         cv2.THRESH_BINARY
+                                         + cv2.THRESH_OTSU)
+        # print(self.img.mean())
+        # thresh = cv2.adaptiveThreshold(self.img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 21, 2)
+        # cv2.imshow("image", self.img)
         # cv2.imshow("thresh", self.thresh)
+        # cv2.imshow("adaptive thresh", thresh)
         # cv2.waitKey(0)
 
     # Tìm biên đóng
@@ -59,8 +69,8 @@ class CharacterSegmentation:
     # Lấy vùng chứa chữ cái
     def get_character_area(self):
 
-        new_img_1 = self.img.copy()
-        new_img_2 = self.img.copy()
+        # new_img_1 = self.img.copy()
+        # new_img_2 = self.img.copy()
 
         character_area = []
         for con in self.contours:
@@ -81,31 +91,20 @@ class CharacterSegmentation:
                 box = cv2.boxPoints(minRect)
                 box = np.int0(box)
 
-                cv2.drawContours(new_img_2, [box], -1, (0, 0, 0), 1, cv2.LINE_AA)
-
-                # font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                # cv2.putText(new_img_2,
-                #             str(int(h / (w + 1))) + str(int(angle)), (int(x), int(y)), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+                # cv2.drawContours(new_img_2, [box], -1, (0, 0, 0), 1, cv2.LINE_AA)
 
                 # Điều kiện về diện tích và tỉ lệ cạnh
                 if constant.MIN_CHARACTER_AREA_1 <= w * h <= constant.MAX_CHARACTER_AREA \
                         and constant.CHARACTER_MIN_RATIO <= h / w <= constant.CHARACTER_MAX_RATIO:
                     # Điều kiện về góc
-                    cv2.drawContours(new_img_1, [box], -1, (0, 0, 0), 1, cv2.LINE_AA)
+                    # cv2.drawContours(new_img_1, [box], -1, (0, 0, 0), 1, cv2.LINE_AA)
                     if (-angle) <= 15 or 90 + angle <= 15:
-                        # cv2.putText(new_img_1,
-                        #             str(int(h / (w + 1))) + str(int(angle)), (int(x), int(y)), font, 1, (0, 0, 0), 1,
-                        #             cv2.LINE_AA)
-                        # print("Box = " + str(box))
-                        # print("Angle = " + str(int(angle)))
                         character_area.append(con)
             else:
                 continue
-
         # cv2.imshow("new_image_1", new_img_1)
         # cv2.imshow("new_image_2", new_img_2)
         # cv2.waitKey(0)
-
         return character_area
 
     # Điều kiện lọc vùng chồng nhau
@@ -135,23 +134,20 @@ class CharacterSegmentation:
 
     # Điều kiện lọc vùng có kích thước không thỏa mãn
     def remove_wrond_position_area(self, min_rect):
+        # 4 đỉnh của rotate rectangle
         box = cv2.boxPoints(min_rect)
-
         # Sắp xếp theo tạo độ x
         box_x = sorted(box, key=lambda x: x[0])
         # print("Box_x = " + str(box_x))
         # Sắp xếp theo tọa độ y
         box_y = sorted(box, key=lambda y: y[1])
         # print("Box_y = " + str(box_y))
-
         if box_x[0][0] < 0 or box_x[3][0] > 600:
             return False
         if box_y[0][1] < 0 or box_y[3][1] > 600:
             return False
-
         width = math.fabs(box_y[0][0] - box_y[1][0])
         height = math.fabs(box_x[0][1] - box_x[1][1])
-        # print("Width = " + str(width) + " Height = " + str(height))
 
         if width > height:
             return False
@@ -208,11 +204,37 @@ class CharacterSegmentation:
             q += 1
 
     # Tìm các kí tự
-    def get_character(self):
+    def get_character(self, plate_property, num_c):
         self.resize_image()
-        self.clahe_image()
-        self.blur()
-        self.thresh_image(self.img.mean())
+        # Biển rõ
+        if plate_property == 1:
+            self.bilateral_blur()
+            self.clahe_image(2, (8, 8))
+            self.blur()
+            self.thresh_image()
+        # Biển mờ
+        elif plate_property == 2:
+            # cv2.imshow("plate", self.img)
+            # self.equal_hist()
+            # cv2.imshow("e_h", self.img)
+            self.clahe_image(10, (5, 5))
+            # cv2.imshow("cl", self.img)
+            self.bilateral_blur()
+            # cv2.imshow("b_b", self.img)
+            self.thresh_image()
+            cv2.waitKey(0)
+        # Biển bụi, bẩn
+        else:
+            self.median_blur()
+            # cv2.imshow("m_b", self.img)
+            self.clahe_image(15, (8, 8))
+            # cv2.imshow("e_h", self.img)
+            # self.bilateral_blur()
+            # cv2.imshow("e_h", self.img)
+            self.thresh_image()
+
+        # self.blur()
+        # self.thresh_image(self.img.mean())
         self.find_contour()
         character_area = self.get_character_area()
         character_bounding_rect = self.remove_overlap_area(character_area)
