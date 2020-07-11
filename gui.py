@@ -218,11 +218,11 @@ class Root(Tk):
                 messagebox.showinfo(title="Thông báo", message="Không nhận dạng được biển số")
             else:
                 # Hiển thị ảnh của các kí tự
-                # count = 0
-                # for c in detector.plate[2]:
-                #     cv2.imshow("c " + str(count), c)
-                #     count += 1
-                # cv2.waitKey(0)
+                count = 0
+                for c in detector.plate[2]:
+                    cv2.imwrite("num_" + str(count) + ".jpg", c)
+                    count += 1
+                cv2.waitKey(0)
 
                 self.convert_image(detector.plate[0], (250, 250))
                 self.canvas_img_plate.create_image(0, 0, anchor=NW, image=self.img_plate)
@@ -256,6 +256,7 @@ class Root(Tk):
 
     # Chuyển ảnh Mat -> Image
     def convert_image(self, img, size):
+        # cv2.imwrite("plate_image.jpg", img)
         image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.img_plate = Image.fromarray(image)
         self.img_plate = self.img_plate.resize(size, Image.ANTIALIAS)
